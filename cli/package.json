@@ -1,6 +1,6 @@
 {
   "name": "@screenwright/cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "An intuitive CLI tool for iOS development - launch apps, manage simulators, and create tutorial videos",
   "type": "module",
   "main": "dist/index.js",
