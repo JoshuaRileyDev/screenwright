@@ -1,6 +1,6 @@
 {
   "name": "@screenwright/sdk",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "SDK for iOS simulator management and video creation",
   "type": "module",
   "main": "./dist/index.js",
