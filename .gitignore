@@ -4,3 +4,10 @@ node_modules/
 dist/
 *.lock
 
+# Environment variables (contain API keys)
+.env
+.env.local
+.env.*.local
+
+# Keep the example template
+!.env.example
