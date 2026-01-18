@@ -1,3 +1,21 @@
+import { createRequire } from "node:module";
+var __create = Object.create;
+var __getProtoOf = Object.getPrototypeOf;
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __toESM = (mod, isNodeMode, target) => {
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
+        enumerable: true
+      });
+  return to;
+};
+var __require = /* @__PURE__ */ createRequire(import.meta.url);
 // src/utils/detect.ts
 async function detectProjectType(projectPath) {
   const iosDirExists = await fileExists(`${projectPath}/ios`);
@@ -661,394 +679,6 @@ async function createVideoDir(projectPath, videoId) {
   }
   return dir;
 }
-// src/utils/content-generator.ts
-async function generateContentIdeas(projectPath, options = {}) {
-  console.log("[Content] Analyzing project for content ideas...");
-  const projectType = await detectProjectType(projectPath);
-  const maxIdeas = options.maxIdeas || 10;
-  const maxCategories = options.maxCategories || 3;
-  let packageName = "app";
-  let packageDescription = "";
-  try {
-    const packageJsonPath = `${projectPath}/package.json`;
-    const packageJson = await Bun.file(packageJsonPath).json();
-    packageName = packageJson.name || "app";
-    packageDescription = packageJson.description || "";
-  } catch {}
-  let appName = packageName;
-  try {
-    const appJsonPath = `${projectPath}/app.json`;
-    const appJson = await Bun.file(appJsonPath).json();
-    appName = appJson.name || appJson.expo?.name || appName;
-  } catch {}
-  console.log(`[Content] Project: ${appName} (${projectType})`);
-  const analysis = await analyzeProjectStructure(projectPath, projectType);
-  console.log(`[Content] Found ${analysis.features.length} features, ${analysis.screens.length} screens`);
-  const categories = generateCategoriesForProject(appName, projectType, analysis, maxIdeas, maxCategories);
-  console.log(`[Content] Generated ${categories.length} categories with ${categories.reduce((sum, c) => sum + c.content.length, 0)} ideas`);
-  return categories;
-}
-async function analyzeProjectStructure(projectPath, projectType) {
-  const features = [];
-  const screens = [];
-  const patterns = {
-    features: [
-      "auth",
-      "login",
-      "signup",
-      "profile",
-      "settings",
-      "notification",
-      "chat",
-      "message",
-      "post",
-      "feed",
-      "search",
-      "filter",
-      "camera",
-      "photo",
-      "video",
-      "upload",
-      "download",
-      "map",
-      "location",
-      "navigation",
-      "route",
-      "payment",
-      "checkout",
-      "cart",
-      "order",
-      "social",
-      "friend",
-      "follow",
-      "like",
-      "comment",
-      "dashboard",
-      "analytics",
-      "report",
-      "chart",
-      "todo",
-      "task",
-      "reminder",
-      "calendar",
-      "event"
-    ],
-    screens: [
-      "home",
-      "main",
-      "landing",
-      "splash",
-      "welcome",
-      "detail",
-      "list",
-      "grid",
-      "form",
-      "modal",
-      "drawer",
-      "tab",
-      "stack"
-    ]
-  };
-  try {
-    const findProc = Bun.spawn([
-      "find",
-      projectPath,
-      "-type",
-      "f",
-      "-name",
-      "*.tsx",
-      "-o",
-      "-name",
-      "*.ts",
-      "-o",
-      "-name",
-      "*.jsx",
-      "-o",
-      "-name",
-      "*.js",
-      "-o",
-      "-name",
-      "*.swift",
-      "-o",
-      "-name",
-      "*.m"
-    ], {
-      stdout: "pipe",
-      stderr: "pipe"
-    });
-    await findProc.exited;
-    if (findProc.exitCode === 0) {
-      const files = await new Response(findProc.stdout).text();
-      const fileList = files.trim().split(`
-`).filter((f) => f && !f.includes("node_modules"));
-      const sampleSize = Math.min(fileList.length, 20);
-      const sample = fileList.slice(0, sampleSize);
-      for (const file of sample) {
-        try {
-          const content = await Bun.file(file).text();
-          const lowerContent = content.toLowerCase();
-          for (const feature of patterns.features) {
-            if (lowerContent.includes(feature) && !features.includes(feature)) {
-              features.push(feature);
-            }
-          }
-          for (const screen of patterns.screens) {
-            if (lowerContent.includes(screen) && !screens.includes(screen)) {
-              screens.push(screen);
-            }
-          }
-        } catch {}
-      }
-    }
-  } catch {}
-  return { features, screens };
-}
-function generateCategoriesForProject(appName, projectType, analysis, maxIdeas, maxCategories) {
-  const categories = [];
-  const gettingStarted = {
-    name: "Getting Started",
-    description: `Learn the basics of using ${appName}`,
-    content: [
-      {
-        id: `idea_${Date.now()}_1`,
-        title: `Getting Started with ${appName}`,
-        description: `A quick introduction to ${appName} and its main features. Learn how to navigate the app and understand its core functionality.`,
-        feature: "onboarding",
-        setupSteps: [],
-        recordingSteps: [
-          `Open ${appName} to see the home screen`,
-          `Notice the main navigation elements at the bottom`,
-          `Tap through different sections to explore`,
-          `Observe the clean layout and intuitive design`
-        ],
-        category: "Getting Started",
-        createdAt: new Date().toISOString()
-      }
-    ]
-  };
-  if (analysis.features.includes("auth") || analysis.features.includes("login")) {
-    gettingStarted.content.push({
-      id: `idea_${Date.now()}_2`,
-      title: "Creating Your Account",
-      description: "Learn how to sign up for a new account and complete your profile setup.",
-      feature: "authentication",
-      setupSteps: [],
-      recordingSteps: [
-        'Tap the "Sign Up" or "Get Started" button',
-        "Enter your email address and create a password",
-        "Fill in your profile information",
-        "Verify your email if required",
-        "See your personalized dashboard"
-      ],
-      category: "Getting Started",
-      createdAt: new Date().toISOString()
-    });
-  }
-  categories.push(gettingStarted);
-  if (analysis.features.length > 0) {
-    const coreFeatures = {
-      name: "Core Features",
-      description: `Learn how to use ${appName}'s main features`,
-      content: []
-    };
-    const topFeatures = analysis.features.slice(0, 4);
-    let ideaCount = gettingStarted.content.length;
-    for (const feature of topFeatures) {
-      if (ideaCount >= maxIdeas)
-        break;
-      const featureName = feature.charAt(0).toUpperCase() + feature.slice(1);
-      const idea = createFeatureIdea(feature, appName, ideaCount);
-      if (idea) {
-        coreFeatures.content.push(idea);
-        ideaCount++;
-      }
-    }
-    if (coreFeatures.content.length > 0) {
-      categories.push(coreFeatures);
-    }
-  }
-  if (analysis.features.includes("settings") || analysis.features.includes("profile")) {
-    const settings = {
-      name: "Settings & Customization",
-      description: "Customize your experience and manage your preferences",
-      content: []
-    };
-    if (analysis.features.includes("profile")) {
-      settings.content.push({
-        id: `idea_${Date.now()}_${categories.length + 1}`,
-        title: "Managing Your Profile",
-        description: "Learn how to update your profile information, change your avatar, and manage your account settings.",
-        feature: "profile",
-        setupSteps: [
-          "Open the app and tap on your profile icon",
-          'Select "Edit Profile" from the menu'
-        ],
-        recordingSteps: [
-          "Update your display name",
-          "Change your profile picture",
-          "Add a bio or description",
-          "Save your changes",
-          "Verify the updates are reflected"
-        ],
-        category: "Settings & Customization",
-        createdAt: new Date().toISOString()
-      });
-    }
-    if (analysis.features.includes("settings")) {
-      settings.content.push({
-        id: `idea_${Date.now()}_${categories.length + 2}`,
-        title: "Configuring App Settings",
-        description: "Learn how to customize app notifications, privacy settings, and other preferences.",
-        feature: "settings",
-        setupSteps: [
-          "Tap the Settings icon in the navigation",
-          "Browse through available settings"
-        ],
-        recordingSteps: [
-          "Toggle notifications on or off",
-          "Adjust notification preferences",
-          "Configure privacy settings",
-          "Test theme options if available",
-          "Save your preferences"
-        ],
-        category: "Settings & Customization",
-        createdAt: new Date().toISOString()
-      });
-    }
-    if (settings.content.length > 0) {
-      categories.push(settings);
-    }
-  }
-  return categories.slice(0, maxCategories);
-}
-function createFeatureIdea(feature, appName, index) {
-  const featureName = feature.charAt(0).toUpperCase() + feature.slice(1);
-  const featureTemplates = {
-    post: {
-      title: "Creating a Post",
-      description: `Learn how to create and share posts on ${appName}.`,
-      recordingSteps: [
-        "Tap the create or post button (usually + icon)",
-        "Add text content",
-        "Attach photos or media if desired",
-        "Add tags or location if available",
-        'Tap "Post" or "Share" to publish',
-        "See your post in the feed"
-      ]
-    },
-    search: {
-      title: "Searching for Content",
-      description: `Learn how to search and find content on ${appName}.`,
-      setupSteps: [],
-      recordingSteps: [
-        "Tap the search icon or bar",
-        "Type a search term",
-        "See suggested results as you type",
-        "Tap on a result to view",
-        "Use filters if available"
-      ]
-    },
-    chat: {
-      title: "Sending Messages",
-      description: `Learn how to send messages and chat on ${appName}.`,
-      setupSteps: [],
-      recordingSteps: [
-        "Tap on a conversation or the new message icon",
-        "Type your message in the text field",
-        "Tap send to deliver the message",
-        "See the message appear in the conversation"
-      ]
-    },
-    notification: {
-      title: "Managing Notifications",
-      description: `Learn how to view and manage your notifications on ${appName}.`,
-      setupSteps: [],
-      recordingSteps: [
-        "Tap the notifications bell icon",
-        "View your recent notifications",
-        "Tap on a notification to open it",
-        "Swipe left on a notification to dismiss",
-        'Tap "Mark all as read" if available'
-      ]
-    },
-    camera: {
-      title: "Taking Photos",
-      description: `Learn how to take and share photos using ${appName}.`,
-      setupSteps: [],
-      recordingSteps: [
-        "Tap the camera icon",
-        "Grant camera permissions if asked",
-        "Frame your shot in the viewfinder",
-        "Tap the shutter button to capture",
-        "Review your photo",
-        "Add effects or filters if available",
-        "Share or save the photo"
-      ]
-    },
-    profile: {
-      title: "Viewing Profiles",
-      description: `Learn how to view user profiles on ${appName}.`,
-      setupSteps: [],
-      recordingSteps: [
-        "Search for a user or tap on a username",
-        "View their profile information",
-        "See their posts or activity",
-        "Follow or connect if available"
-      ]
-    },
-    map: {
-      title: "Using the Map",
-      description: `Learn how to use the map features in ${appName}.`,
-      setupSteps: [],
-      recordingSteps: [
-        "Navigate to the map section",
-        "Grant location permissions if asked",
-        "See your current location on the map",
-        "Search for a place",
-        "Get directions to a location"
-      ]
-    }
-  };
-  const template = featureTemplates[feature];
-  if (!template) {
-    return {
-      id: `idea_${Date.now()}_${index}`,
-      title: `Using ${featureName}`,
-      description: `Learn how to use the ${featureName} feature in ${appName}.`,
-      feature,
-      setupSteps: [],
-      recordingSteps: [
-        `Navigate to the ${featureName} section`,
-        `Explore the available options`,
-        `Interact with the main features`,
-        `Observe the results`
-      ],
-      category: "Core Features",
-      createdAt: new Date().toISOString()
-    };
-  }
-  return {
-    id: `idea_${Date.now()}_${index}`,
-    title: template.title || `Using ${featureName}`,
-    description: template.description || `Learn how to use the ${featureName} feature in ${appName}.`,
-    feature,
-    setupSteps: template.setupSteps || [],
-    recordingSteps: template.recordingSteps || [],
-    category: "Core Features",
-    createdAt: new Date().toISOString()
-  };
-}
-async function generateAndSaveContentIdeas(projectPath, options = {}) {
-  const categories = await generateContentIdeas(projectPath, options);
-  const allIdeas = [];
-  for (const category of categories) {
-    for (const idea of category.content) {
-      allIdeas.push(idea);
-    }
-  }
-  await addContentIdeas(projectPath, allIdeas);
-  return categories;
-}
 // src/utils/onboard.ts
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -1301,6 +931,526 @@ async function loadAllApiKeysToEnv() {
   await loadApiKeyToEnv("openrouter");
   await loadApiKeyToEnv("elevenlabs");
 }
+
+// src/ai/config.ts
+async function getAIConfig() {
+  const config = {};
+  const envOpenRouter = process.env.OPENROUTER_API_KEY?.trim();
+  const envElevenLabs = process.env.ELEVENLABS_API_KEY?.trim();
+  const envContentModel = process.env.CONTENT_CREATOR_MODEL?.trim();
+  const envScriptModel = process.env.SCRIPTWRITER_MODEL?.trim();
+  const envPlannerModel = process.env.PLANNER_MODEL?.trim();
+  if (envOpenRouter) {
+    config.openrouterApiKey = envOpenRouter;
+  }
+  if (envElevenLabs) {
+    config.elevenlabsApiKey = envElevenLabs;
+  }
+  if (envContentModel) {
+    config.contentCreatorModel = envContentModel;
+  }
+  if (envScriptModel) {
+    config.scriptwriterModel = envScriptModel;
+  }
+  if (envPlannerModel) {
+    config.plannerModel = envPlannerModel;
+  }
+  if (!config.openrouterApiKey || !config.elevenlabsApiKey) {
+    try {
+      const onboardConfig = await loadOnboardConfig();
+      if (onboardConfig) {
+        if (!config.openrouterApiKey && onboardConfig.openrouterApiKey) {
+          config.openrouterApiKey = onboardConfig.openrouterApiKey;
+        }
+        if (!config.elevenlabsApiKey && onboardConfig.elevenlabsApiKey) {
+          config.elevenlabsApiKey = onboardConfig.elevenlabsApiKey;
+        }
+      }
+    } catch {}
+  }
+  return config;
+}
+async function getOpenRouterApiKey() {
+  const config = await getAIConfig();
+  if (!config.openrouterApiKey) {
+    throw new Error(`OpenRouter API key not found. Please run:
+` + `  "screenwright onboard" to configure your API keys, or
+` + `  Set the OPENROUTER_API_KEY environment variable.
+
+` + "Get your key at: https://openrouter.ai/keys");
+  }
+  return config.openrouterApiKey;
+}
+async function getModel(agent) {
+  const config = await getAIConfig();
+  const agentModelKey = `${agent}Model`;
+  const agentModel = config[agentModelKey];
+  if (agentModel) {
+    return agentModel;
+  }
+  const envVar = `OPENROUTER_MODEL`;
+  const envModel = process.env[envVar]?.trim();
+  if (envModel) {
+    return envModel;
+  }
+  const defaults = {
+    "content-creator": "anthropic/claude-sonnet-4.5",
+    scriptwriter: "google/gemini-2.5-flash",
+    planner: "google/gemini-2.5-flash"
+  };
+  return defaults[agent];
+}
+// src/ai/openrouter.ts
+class OpenRouterClient {
+  apiKey;
+  baseURL;
+  headers;
+  constructor(config) {
+    this.apiKey = typeof config === "string" ? config : config.apiKey;
+    this.baseURL = (typeof config === "object" ? config.baseURL : undefined) || "https://openrouter.ai/api/v1";
+    this.headers = {
+      "HTTP-Referer": "https://github.com/yourusername/instructionsCreator",
+      "X-Title": "Instructions Creator",
+      ...typeof config === "object" ? config.headers : undefined
+    };
+  }
+  async chatCompletion(options) {
+    const controller = new AbortController;
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+    try {
+      console.log(`[OpenRouter] Making request to: ${this.baseURL}/chat/completions`);
+      console.log(`[OpenRouter] Model: ${options.model}`);
+      console.log(`[OpenRouter] Messages: ${options.messages.length}`);
+      console.log(`[OpenRouter] Tools: ${options.tools?.length || 0}`);
+      const response = await fetch(`${this.baseURL}/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+          ...this.headers
+        },
+        body: JSON.stringify({
+          model: options.model,
+          messages: options.messages,
+          tools: options.tools,
+          tool_choice: options.tool_choice,
+          response_format: options.response_format,
+          temperature: options.temperature,
+          max_tokens: options.max_tokens
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error(`[OpenRouter] API error response: ${errorData}`);
+        throw new Error(`OpenRouter API error: ${response.status} ${errorData}`);
+      }
+      const data = await response.json();
+      const choice = data.choices[0];
+      const assistantMessage = choice.message;
+      console.log(`[OpenRouter] Response received`);
+      console.log(`[OpenRouter] Finish reason: ${choice.finish_reason}`);
+      if (data.usage) {
+        console.log(`[OpenRouter] Token usage: ${data.usage.total_tokens} total`);
+      }
+      return {
+        content: assistantMessage.content,
+        toolCalls: assistantMessage.tool_calls,
+        finishReason: choice.finish_reason,
+        usage: data.usage ? {
+          promptTokens: data.usage.prompt_tokens,
+          completionTokens: data.usage.completion_tokens,
+          totalTokens: data.usage.total_tokens
+        } : undefined,
+        model: data.model
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error("OpenRouter request timeout (>120s)");
+      }
+      throw error;
+    }
+  }
+  async chat(options) {
+    const result = await this.chatCompletion(options);
+    if (!result.content) {
+      throw new Error("No content in response");
+    }
+    return result.content;
+  }
+  async chatJSON(options) {
+    const result = await this.chatCompletion({
+      ...options,
+      response_format: { type: "json_object" }
+    });
+    if (!result.content) {
+      throw new Error("No content in response");
+    }
+    let jsonContent = result.content.trim();
+    const jsonMatch = jsonContent.match(/```json\s*([\s\S]*?)\s*```/) || jsonContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonContent = jsonMatch[1] || jsonMatch[0];
+    }
+    return JSON.parse(jsonContent);
+  }
+}
+function createOpenRouterClient(config) {
+  if (!config) {
+    const key = process.env.OPENROUTER_API_KEY || "";
+    if (!key) {
+      throw new Error("OpenRouter API key not found. Please set OPENROUTER_API_KEY environment variable " + "or use getAIConfig() from ./config.ts to load from onboard config.");
+    }
+    return new OpenRouterClient({ apiKey: key });
+  }
+  return new OpenRouterClient(config);
+}
+// src/ai/prompts/content-creator.ts
+var CONTENT_CREATOR_SYSTEM_PROMPT = `You are a content strategy assistant specialized in creating END-USER tutorial video ideas for applications.
+
+CRITICAL: These videos are for APP USERS, NOT DEVELOPERS. Focus on how to USE the app, not how it was built.
+
+Your capabilities:
+- Analyze codebase to identify user-facing features
+- Understand UI components, screens, and user workflows
+- Identify what tasks users can accomplish with the app
+- Organize content into logical tutorial categories
+
+Your process:
+1. Examine the codebase to understand what the app does and what users can do with it
+2. Identify user-facing features (screens, buttons, forms, interactions)
+3. Think about user goals and tasks (not technical implementation)
+4. Generate tutorial ideas that teach users HOW TO USE features
+5. Organize ideas from basic usage to advanced capabilities
+
+Remember: You're creating a user manual in video form, not a coding course.
+
+Category organization:
+- ALWAYS start with "Getting Started" category (1-2 videos) - What the app does, how to navigate, basic overview
+- If the app has settings/preferences, add "Settings & Customization" category (1-2 videos) - How users configure the app
+- Create task-based categories for the rest (e.g., "Creating Your First Project", "Managing Your Profile", "Sharing & Collaboration")
+- Each category should contain 2-4 content items
+- Categories should follow a user journey (first-time user → regular user → power user)
+
+Granularity guidelines (CRITICAL - USER-FOCUSED):
+- Each video should teach users how to accomplish ONE complete task or use ONE complete feature
+- ❌ TOO GRANULAR: "Tapping the Menu Button", "Selecting an Option", "Saving Your Choice" (combine into: "Using the Settings Menu")
+- ❌ TOO BROAD: "Everything About User Profiles" (split into: "Setting Up Your Profile", "Adding Profile Photos", "Managing Privacy Settings")
+- ✅ JUST RIGHT: "Creating Your First Post", "Finding and Following Friends", "Customizing Your Dashboard"
+- Ask yourself: "Can a user watch this 5-10 minute video and accomplish something meaningful?" If yes, it's good.
+
+Examples of USER-FOCUSED video titles:
+- ✅ "How to Create and Share a Photo Album"
+- ✅ "Setting Up Push Notifications"
+- ✅ "Finding Recipes by Ingredient"
+- ❌ "Understanding the Authentication System" (too technical)
+- ❌ "How Components Are Structured" (developer-focused)
+- ❌ "API Integration Overview" (not user-facing)
+
+CRITICAL - Screen Recording Instructions:
+For EACH video idea, you must provide detailed step-by-step instructions for recording:
+
+1. **setupSteps** - Navigate from app home screen to starting screen:
+   - IMPORTANT: App is already open at the home/main screen
+   - Do NOT include "Open the app" - it's already open
+   - If the video starts at the home screen, use empty array: []
+   - Be specific about button names, icons, locations
+   - Example: ["Tap the Settings icon (gear) in bottom right", "Scroll down to Notifications section"]
+
+2. **recordingSteps** - What to do during the recording:
+   - Specific actions: tap, type, swipe, scroll
+   - Include what to type/select
+   - Note expected UI feedback
+   - Example: ["Tap the toggle next to Push Notifications", "Observe toggle turns green/on", "Tap on 'Notification Sound'", "Select 'Chime' from list", "Tap back arrow to return"]
+
+Think of these as instructions for an AI agent recording the screen who has never seen the app.
+
+Quality guidelines:
+- Be USER-CENTRIC: Focus on what users want to DO, not how it's coded
+- Be task-oriented: Frame as "How to..." or "Creating/Managing/Using..."
+- Be practical: Only include features users will actually interact with
+- Be accurate: Only suggest ideas based on features that actually exist in the app
+- Avoid technical jargon: No API, components, implementation details
+- Avoid duplicates: Don't repeat existing content ideas provided by the user
+- Be organized: Group related tasks into logical categories
+- Think user journey: First-time setup → everyday tasks → advanced features`;
+// src/ai/agents/content-creator.ts
+import { readdir, stat } from "node:fs/promises";
+import { join as join2, relative } from "node:path";
+async function exploreCodebase(projectPath) {
+  console.log("[Content Creator] Exploring codebase...");
+  const findings = [];
+  const fileContents = [];
+  try {
+    const packageJsonPath = join2(projectPath, "package.json");
+    const packageFile = Bun.file(packageJsonPath);
+    if (await packageFile.exists()) {
+      const content = await packageFile.text();
+      const pkg = JSON.parse(content);
+      findings.push(`## Package Information
+- Name: ${pkg.name}
+- Description: ${pkg.description || "N/A"}
+- Dependencies: ${Object.keys(pkg.dependencies || {}).join(", ")}`);
+      console.log("[Content Creator] ✓ Read package.json");
+    }
+  } catch {
+    console.log("[Content Creator] ⚠ No package.json found");
+  }
+  try {
+    for (const name of ["README.md", "readme.md", "README.MD"]) {
+      const readmePath = join2(projectPath, name);
+      const readmeFile = Bun.file(readmePath);
+      if (await readmeFile.exists()) {
+        const content = await readmeFile.text();
+        findings.push(`## README
+${content.substring(0, 1000)}`);
+        console.log("[Content Creator] ✓ Read README.md");
+        break;
+      }
+    }
+  } catch {
+    console.log("[Content Creator] ⚠ No README found");
+  }
+  const isIgnored = await parseGitignore(projectPath);
+  async function exploreDirectory(dirPath, depth = 0) {
+    if (depth > 3)
+      return;
+    try {
+      const entries = await readdir(dirPath);
+      for (const entry of entries) {
+        const fullPath = join2(dirPath, entry);
+        const relativePath = relative(projectPath, fullPath);
+        if (isIgnored(relativePath))
+          continue;
+        try {
+          const stats = await stat(fullPath);
+          if (stats.isDirectory()) {
+            findings.push(`\uD83D\uDCC1 ${relativePath}/`);
+            await exploreDirectory(fullPath, depth + 1);
+          } else if (stats.isFile()) {
+            if (/\.(tsx?|jsx?|json|md)$/.test(entry) && stats.size < 1e5) {
+              const file = Bun.file(fullPath);
+              const content = await file.text();
+              fileContents.push({
+                path: relativePath,
+                content: content.substring(0, 2000),
+                size: stats.size
+              });
+              findings.push(`\uD83D\uDCC4 ${relativePath} (${stats.size} bytes)`);
+            } else {
+              findings.push(`\uD83D\uDCC4 ${relativePath} (${stats.size} bytes)`);
+            }
+          }
+        } catch {
+          continue;
+        }
+      }
+    } catch {
+      return;
+    }
+  }
+  await exploreDirectory(projectPath);
+  let summary = `# Codebase Exploration Results
+
+`;
+  summary += findings.join(`
+`);
+  summary += `
+
+## Key File Contents
+
+`;
+  for (const file of fileContents.slice(0, 20)) {
+    summary += `### ${file.path}
+\`\`\`
+${file.content}
+\`\`\`
+
+`;
+  }
+  console.log(`[Content Creator] ✓ Explored ${findings.length} items, read ${fileContents.length} files`);
+  return summary;
+}
+async function parseGitignore(basePath) {
+  const { readFile } = await import("node:fs/promises");
+  const gitignorePath = join2(basePath, ".gitignore");
+  try {
+    const content = await readFile(gitignorePath, "utf-8");
+    const patterns = content.split(`
+`).map((line) => line.trim()).filter((line) => line && !line.startsWith("#"));
+    return (path) => {
+      if (path.includes("node_modules") || path.includes(".git/") || path.includes("dist/") || path.includes("out/") || path.includes(".claude/")) {
+        return true;
+      }
+      return patterns.some((pattern) => {
+        if (pattern.endsWith("/")) {
+          const dirPattern = pattern.slice(0, -1);
+          return path.startsWith(dirPattern) || path.includes(`/${dirPattern}`);
+        }
+        if (pattern.startsWith("*")) {
+          const extension = pattern.slice(1);
+          return path.endsWith(extension);
+        }
+        return path === pattern || path.includes(pattern) || path.endsWith(pattern);
+      });
+    };
+  } catch {
+    return (path) => path.includes("node_modules") || path.includes(".git/") || path.includes("dist/") || path.includes("out/") || path.includes(".claude/");
+  }
+}
+async function generateContentIdeas(options) {
+  const {
+    projectPath,
+    existingContent = [],
+    maxIdeas = 10,
+    maxCategories = 3
+  } = options;
+  console.log(`[Content Creator] Starting generation for ${projectPath}`);
+  console.log(`[Content Creator] Target: ${maxIdeas} ideas in ${maxCategories} categories`);
+  const explorationSummary = await exploreCodebase(projectPath);
+  console.log(`[Content Creator] Exploration summary length: ${explorationSummary.length} chars`);
+  const [apiKey, model] = await Promise.all([
+    getOpenRouterApiKey(),
+    getModel("content-creator")
+  ]);
+  console.log(`[Content Creator] Using model: ${model}`);
+  const generationPrompt = `Based on the following codebase exploration, generate ${maxIdeas} END-USER tutorial video ideas organized into ${maxCategories} categories.
+
+CRITICAL: These videos teach APP USERS how to USE the application, NOT developers how to code it.
+
+## Codebase Analysis:
+${explorationSummary}
+
+${existingContent.length > 0 ? `
+IMPORTANT: Avoid duplicating these existing content ideas:
+${existingContent.map((item, i) => `${i + 1}. "${item.title}" - ${item.description}${item.category ? ` (Category: ${item.category})` : ""}`).join(`
+`)}
+` : ""}
+
+Required category structure:
+1. FIRST: "Getting Started" (1-2 videos) - What the app does, basic navigation, first-time setup
+2. IF APPLICABLE: "Settings & Customization" (1-2 videos) - Only if app has user-configurable settings
+3. REMAINING: Task-based categories (2-4 videos each) - Organized by what users want to accomplish
+
+Focus on USER TASKS and WORKFLOWS:
+- Think: "What does a user want to DO with this app?"
+- Frame as: "How to [accomplish task]" or "Creating/Managing/Using [feature]"
+- Examples: "Creating Your First Post", "Finding Friends", "Customizing Notifications"
+- NOT: "Understanding Components", "API Integration", "Code Architecture"
+
+CRITICAL - Recording Instructions:
+For EACH video idea, provide:
+1. **setupSteps**: Navigation from app home screen to the starting screen
+   - IMPORTANT: App is already open at the home/main screen
+   - Do NOT include "Open the app" as a step
+   - Start from wherever the app lands after opening
+   - Be specific: "Tap the Settings icon (gear icon) in bottom right" not "Go to settings"
+   - If video starts at home screen, setupSteps can be empty array: []
+   - Example: ["Tap the + button in bottom center", "Select 'New Post' from menu"]
+
+2. **recordingSteps**: Actions to perform during the screen recording
+   - Be specific about what to tap/type/swipe
+   - Include expected UI feedback: "Toggle turns blue", "Success message appears"
+   - Example: ["Tap in the title field", "Type 'My First Post'", "Tap the camera icon", "Select a photo", "Tap 'Post' button", "Confirm post appears in feed"]
+
+Granularity balance:
+- Each video = ONE complete USER TASK or FEATURE
+- Don't split simple tasks into multiple videos (too granular)
+- Don't combine complex workflows into one video (too broad)
+- Think: "Can a user accomplish something meaningful after watching this 5-10 minute video?"
+
+Avoid:
+- Technical/developer language (API, components, implementation, code structure)
+- Duplicating the existing content ideas listed above
+- Features users never interact with directly
+- Vague instructions like "Navigate to settings" (be specific: "Tap Settings icon in bottom navigation")`;
+  console.log("[Content Creator] Calling OpenRouter API...");
+  try {
+    const client = createOpenRouterClient(apiKey);
+    const messages = [
+      { role: "system", content: CONTENT_CREATOR_SYSTEM_PROMPT },
+      { role: "user", content: generationPrompt }
+    ];
+    const result = await client.chatJSON({
+      model,
+      messages,
+      response_format: { type: "json_object" }
+    });
+    console.log("[Content Creator] Generation complete!");
+    console.log(`[Content Creator] Generated ${result.categories.length} categories`);
+    result.categories.forEach((cat, i) => {
+      console.log(`[Content Creator] Category ${i + 1}: "${cat.name}" with ${cat.content.length} ideas`);
+      cat.content.forEach((idea, j) => {
+        console.log(`[Content Creator]   ${j + 1}. "${idea.title}"`);
+      });
+    });
+    const deduplicatedCategories = result.categories.map((category) => ({
+      ...category,
+      content: deduplicateIdeas(category.content, existingContent)
+    })).filter((category) => category.content.length > 0);
+    console.log(`[Content Creator] After deduplication: ${deduplicatedCategories.length} categories`);
+    console.log("[Content Creator] ✅ Generation successful!");
+    return deduplicatedCategories.slice(0, maxCategories);
+  } catch (error) {
+    console.error("[Content Creator] ❌ Error during generation:", error);
+    throw error;
+  }
+}
+function deduplicateIdeas(newIdeas, existing) {
+  return newIdeas.filter((newIdea) => {
+    const isDuplicate = existing.some((existingItem) => {
+      const newWords = new Set(newIdea.title.toLowerCase().split(/\s+/));
+      const existingWords = new Set(existingItem.title.toLowerCase().split(/\s+/));
+      const overlap = [...newWords].filter((word) => existingWords.has(word));
+      const similarity = overlap.length / Math.max(newWords.size, existingWords.size);
+      return similarity > 0.6;
+    });
+    return !isDuplicate;
+  });
+}
+// src/utils/content-generator.ts
+async function generateContentIdeas2(projectPath, options = {}) {
+  console.log("[Content] Using AI-powered content generation...");
+  const existingContent = options.existingContent?.map((item) => ({
+    title: item.title,
+    description: item.description || "",
+    category: item.category
+  })) || [];
+  const aiCategories = await generateContentIdeas({
+    projectPath,
+    existingContent,
+    maxIdeas: options.maxIdeas || 10,
+    maxCategories: options.maxCategories || 3
+  });
+  const categories = aiCategories.map((cat, catIndex) => ({
+    name: cat.name,
+    description: cat.description,
+    content: cat.content.map((idea, ideaIndex) => ({
+      id: `idea_${Date.now()}_${catIndex}_${ideaIndex}`,
+      title: idea.title,
+      description: idea.description,
+      feature: idea.feature,
+      setupSteps: idea.setupSteps,
+      recordingSteps: idea.recordingSteps,
+      category: cat.name,
+      createdAt: new Date().toISOString()
+    }))
+  }));
+  console.log(`[Content] Generated ${categories.length} categories with ${categories.reduce((sum, c) => sum + c.content.length, 0)} ideas`);
+  return categories;
+}
+async function generateAndSaveContentIdeas(projectPath, options = {}) {
+  const categories = await generateContentIdeas2(projectPath, options);
+  const allIdeas = [];
+  for (const category of categories) {
+    for (const idea of category.content) {
+      allIdeas.push(idea);
+    }
+  }
+  await addContentIdeas(projectPath, allIdeas);
+  return categories;
+}
 export {
   waitForSimulatorReady,
   validateApiKey,
@@ -1345,7 +1495,7 @@ export {
   getConfigPath,
   getBootedSimulators,
   getAvailableSimulators,
-  generateContentIdeas,
+  generateContentIdeas2 as generateContentIdeas,
   generateAndSaveContentIdeas,
   findSimulatorByDeviceModel,
   findOrCreateSimulator,

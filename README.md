@@ -1,6 +1,8 @@
-# Screenwright CLI
+![Screenwright banner](images/screenwright-banner.png)
 
-An AI-powered CLI tool for creating tutorial videos from your iOS app codebase. Analyzes your Expo or React Native project and generates video content plans, then orchestrates the full video creation pipeline.
+# Screenwright
+
+An AI-powered tool for creating tutorial videos from your iOS app codebase. Analyzes your Expo or React Native project and generates video content plans, then orchestrates the full video creation pipeline.
 
 ## Features
 
