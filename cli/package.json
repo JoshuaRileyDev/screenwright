@@ -1,0 +1,45 @@
+{
+  "name": "screenwright",
+  "version": "1.0.0",
+  "description": "An intuitive CLI tool for iOS development - launch apps, manage simulators, and create tutorial videos",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "screenwright": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "bun build ./src/cli.ts --outdir ./dist --target node",
+    "build:sdk": "cd ../sdk && bun run build",
+    "dev": "bun ./src/cli.ts",
+    "watch": "bun --watch ./src/cli.ts"
+  },
+  "keywords": [
+    "cli",
+    "ios",
+    "simulator",
+    "expo",
+    "react-native",
+    "xcode",
+    "screenplaywright",
+    "video-creation",
+    "tutorial"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@screenwright/sdk": "file:../sdk",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "ora": "^8.1.1",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

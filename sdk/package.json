@@ -1,0 +1,70 @@
+{
+  "name": "@screenwright/sdk",
+  "version": "1.0.0",
+  "description": "SDK for iOS simulator management and video creation",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./detect": {
+      "types": "./dist/detect.d.ts",
+      "default": "./dist/detect.js"
+    },
+    "./simulator": {
+      "types": "./dist/simulator.d.ts",
+      "default": "./dist/simulator.js"
+    },
+    "./launch": {
+      "types": "./dist/launch.d.ts",
+      "default": "./dist/launch.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "default": "./dist/config.js"
+    },
+    "./video": {
+      "types": "./dist/video.d.ts",
+      "default": "./dist/video.js"
+    },
+    "./onboard": {
+      "types": "./dist/onboard.d.ts",
+      "default": "./dist/onboard.js"
+    }
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm && bun run build:types",
+    "build:types": "tsc --emitDeclarationOnly",
+    "dev": "bun --watch src/index.ts",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "ios",
+    "simulator",
+    "expo",
+    "react-native",
+    "xcode",
+    "video-creation",
+    "screenwright",
+    "sdk"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}
