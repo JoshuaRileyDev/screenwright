@@ -1,6 +1,6 @@
 {
   "name": "@screenwright/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An intuitive CLI tool for iOS development - launch apps, manage simulators, and create tutorial videos",
   "type": "module",
   "main": "dist/index.js",
@@ -8,6 +8,7 @@
     "screenwright": "./dist/cli.js"
   },
   "scripts": {
+    "prepublishOnly": "bun run build",
     "build": "bun build ./src/cli.ts --outdir ./dist --target node",
     "build:sdk": "cd ../sdk && bun run build",
     "dev": "bun ./src/cli.ts",
